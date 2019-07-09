@@ -13,9 +13,9 @@ import model.entities.Department;
 import model.entities.Seller;
 
 public class SellerDaoJDBC implements SellerDao {
-	
+
 	private Connection conn;
-	
+
 	public SellerDaoJDBC(Connection conn) {
 		this.conn = conn;
 	}
@@ -23,63 +23,69 @@ public class SellerDaoJDBC implements SellerDao {
 	@Override
 	public void insert(Seller obj) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(Seller obj) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deleteById(Integer id) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public Seller findById(Integer id) {
 		PreparedStatement st = null;
 		ResultSet rs = null;
-		
+
 		try {
-			st=conn.prepareStatement("SELECT seller.*,department.Name as DepName " + 
-					"FROM seller INNER JOIN department " + 
-					"ON seller.DepartmentId = department.Id " + 
-					"WHERE seller.Id = ?");
-			
-			st.setInt(1,  id);
-			
+			st = conn.prepareStatement(
+					"SELECT seller.*,department.Name as DepName " + "FROM seller INNER JOIN department "
+							+ "ON seller.DepartmentId = department.Id " + "WHERE seller.Id = ?");
+
+			st.setInt(1, id);
+
 			rs = st.executeQuery();
-			
-			if(rs.next()) {
-				//Criando o Departamento
-				Department dep = new Department();
-				dep.setId(rs.getInt("DepartmentId"));	//Buscando o department pelo nome da coluna
-				dep.setNome(rs.getString("DepName"));
-				
-				//Criando o Seller
-				Seller obj = new Seller();
-				obj.setId(rs.getInt("Id"));
-				obj.setNome(rs.getString("Name"));
-				obj.setEmail(rs.getString("Email"));
-				obj.setBaseSalary(rs.getDouble("BaseSalary"));
-				obj.setBirthDay(rs.getDate("BirthDate"));
-				obj.setDepart(dep);		//Utiliando o departamento criado anteriormente
-				
+
+			if (rs.next()) {
+				// Criando o Departamento
+				Department dep = instanciaDepartamento(rs);
+
+				// Criando o Seller
+				Seller obj = instanciaSeller(rs, dep);
 				return obj;
 			}
-			return null;	
-		} catch(SQLException e) {
+			return null;
+		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
-		}
-		finally {
+		} finally {
 			DB.closeStatement(st);
 			DB.closeResultSet(rs);
 		}
-		
-		
+
+	}
+
+	private Seller instanciaSeller(ResultSet rs, Department dep) throws SQLException {
+		Seller obj = new Seller();
+		obj.setId(rs.getInt("Id"));
+		obj.setNome(rs.getString("Name"));
+		obj.setEmail(rs.getString("Email"));
+		obj.setBaseSalary(rs.getDouble("BaseSalary"));
+		obj.setBirthDay(rs.getDate("BirthDate"));
+		obj.setDepart(dep); // Utiliando o departamento criado anteriormente
+		return obj;
+	}
+
+	private Department instanciaDepartamento(ResultSet rs) throws SQLException {
+		Department dep = new Department();
+		dep.setId(rs.getInt("DepartmentId")); // Buscando o department pelo nome da coluna
+		dep.setNome(rs.getString("DepName"));
+		return dep;
 	}
 
 	@Override
